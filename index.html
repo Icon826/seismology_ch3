@@ -3,387 +3,211 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>地震學 CH3 問答式互動學習網</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Noto+Sans+TC:wght@300;400;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --primary: #0ea5e9;
-            --primary-glow: rgba(14, 165, 233, 0.5);
-            --secondary: #f97316;
-            --bg-dark: #0f172a;
-            --card-bg: rgba(30, 41, 59, 0.6);
-            --text-main: #f8fafc;
-            --text-sub: #cbd5e1;
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        body {
-            font-family: 'Inter', 'Noto Sans TC', sans-serif;
-            background-color: var(--bg-dark);
-            color: var(--text-main);
-            line-height: 1.6;
-            overflow-x: hidden;
-        }
-
-        /* Hero Banner */
-        .hero {
-            position: relative;
-            height: 40vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            background: linear-gradient(to bottom, rgba(15,23,42,0.4), var(--bg-dark)), url('./seismic_hero_bg.png') center/cover;
-        }
-
-        .hero::after {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.4);
-            z-index: 1;
-        }
-
-        .hero-content {
-            position: relative;
-            z-index: 2;
-            padding: 0 20px;
-        }
-
-        .hero h1 {
-            font-size: 3.5rem;
-            font-weight: 800;
-            margin-bottom: 10px;
-            text-shadow: 0 4px 15px rgba(0,0,0,0.8);
-            letter-spacing: 2px;
-        }
-
-        .hero p {
-            font-size: 1.2rem;
-            color: var(--text-sub);
-            max-width: 600px;
-            margin: 0 auto;
-        }
-
-        /* Stats & Controls */
-        .controls {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            padding: 20px;
-            background: rgba(255,255,255,0.02);
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-            position: sticky;
-            top: 0;
-            z-index: 10;
-            backdrop-filter: blur(10px);
-        }
-
-        .btn {
-            background: transparent;
-            border: 1px solid var(--primary);
-            color: var(--primary);
-            padding: 10px 20px;
-            border-radius: 30px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-
-        .btn:hover {
-            background: var(--primary);
-            color: #fff;
-            box-shadow: 0 0 15px var(--primary-glow);
-        }
-
-        /* Grid Layout */
-        .container {
-            max-width: 1200px;
-            margin: 40px auto;
-            padding: 0 20px;
-        }
-
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 30px;
-        }
-
-        /* Flashcard Design */
-        .card-scene {
-            perspective: 1000px;
-            height: 380px;
-        }
-
-        .card {
-            width: 100%;
-            height: 100%;
-            position: relative;
-            transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            transform-style: preserve-3d;
-            cursor: pointer;
-        }
-
-        .card.is-flipped {
-            transform: rotateY(180deg);
-        }
-
-        .card-face {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            backface-visibility: hidden;
-            border-radius: 20px;
-            padding: 30px;
-            display: flex;
-            flex-direction: column;
-            background: var(--card-bg);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255,255,255,0.1);
-            box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
-        }
-
-        /* Front Face (Question) */
-        .card-front {
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-        }
-
-        .chapter-badge {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            background: rgba(14, 165, 233, 0.2);
-            color: var(--primary);
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 700;
-        }
-
-        .question-icon {
-            font-size: 3rem;
-            margin-bottom: 20px;
-            color: var(--secondary);
-            opacity: 0.8;
-        }
-
-        .question-text {
-            font-size: 1.4rem;
-            font-weight: 600;
-            margin-bottom: 20px;
-        }
-
-        .click-hint {
-            position: absolute;
-            bottom: 20px;
-            font-size: 0.85rem;
-            color: var(--text-sub);
-            opacity: 0.6;
-            animation: pulse 2s infinite;
-        }
-
-        /* Back Face (Answer) */
-        .card-back {
-            transform: rotateY(180deg);
-            background: linear-gradient(145deg, rgba(30,41,59,0.9), rgba(15,23,42,0.9));
-            border-color: var(--primary);
-            overflow-y: auto;
-        }
-
-        .card-back::-webkit-scrollbar { width: 6px; }
-        .card-back::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 3px; }
-
-        .answer-title {
-            color: var(--primary);
-            font-size: 1.1rem;
-            font-weight: 700;
-            margin-bottom: 15px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            padding-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .answer-text {
-            font-size: 1.05rem;
-            color: var(--text-main);
-            text-align: justify;
-        }
-        
-        .answer-img {
-            width: 100%;
-            border-radius: 8px;
-            margin-top: 15px;
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); opacity: 0.6; }
-            50% { transform: scale(1.05); opacity: 1; }
-            100% { transform: scale(1); opacity: 0.6; }
-        }
-
-        /* Image gallery block */
-        .gallery-section {
-            margin: 60px 0;
-            padding: 40px;
-            background: rgba(255,255,255,0.02);
-            border-radius: 20px;
-            border: 1px solid rgba(255,255,255,0.05);
-        }
-        .gallery-title {
-            text-align: center;
-            font-size: 2rem;
-            margin-bottom: 30px;
-            color: var(--primary);
-        }
-
-    </style>
+    <title>地震學與地球內部結構 - Chapter 3</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+TC:wght@300;400;700&display=swap" rel="stylesheet">
+    <!-- Highlight.js for code formatting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css">
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
 
-    <header class="hero">
-        <div class="hero-content">
-            <h1>地震學互動問答</h1>
-            <p>Chapter 3: Seismology and Earth Structure 知識挑戰</p>
-        </div>
-    </header>
+    <button class="mobile-toggle" id="mobileToggle" aria-label="Toggle Menu">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+    </button>
 
-    <div class="controls">
-        <button class="btn" id="expandAll">展開所有解答</button>
-        <button class="btn" id="collapseAll">蓋上所有卡片</button>
-        <button class="btn" id="shuffle">隨機打亂順序</button>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h2>Seismology</h2>
+                <p>Chapter 3: Earth Structure</p>
+            </div>
+            <ul class="nav-links" id="navLinks">
+                <!-- Navigation items will be generated here by JS -->
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <section class="hero">
+                <div class="hero-content">
+                    <h1>地震波與地球內部結構</h1>
+                    <p id="heroSubtitle">探索地球深處的奧秘</p>
+                </div>
+            </section>
+
+            <div class="content-wrapper">
+                <div class="markdown-body" id="contentBody">
+                    <!-- Markdown content will be rendered here -->
+                </div>
+            </div>
+        </main>
     </div>
 
-    <div class="container">
-        <div class="grid" id="qaGrid">
-            <!-- Cards will be injected via JS -->
-        </div>
-
-        <div class="gallery-section">
-            <h2 class="gallery-title">觀測圖表與走時剖面</h2>
-            <img src="./record_section.png" alt="Seismic Record Section" style="width: 100%; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
-            <p style="text-align: center; margin-top: 15px; color: var(--text-sub);">圖：利用 Python 處理真實 SAC 測站資料所繪製的地震波走時與波形剖面圖 (Record Section)</p>
-        </div>
-    </div>
-
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+    <!-- Load data -->
+    <script src="./data.js"></script>
+    
     <script>
         const qaData = [
-            {
-                chapter: "3.1 Introduction",
-                question: "P波與S波進入液態的外核時，會發生什麼變化？",
-                answer: "S波無法在液態的外核中傳播，而P波的波速會急遽下降。這些觀測到的波速變化，是我們建立核函邊界 (Core-Mantle Boundary) 兩側物質物理性質與化學成分模型的主要直接證據。"
-            },
-            {
-                chapter: "3.2 Refraction Seismology",
-                question: "在震測折射法中，如果地下存在「低速帶」，會產生什麼問題？",
-                answer: "如果存在低速帶（下層波速低於上層波速），地震波將無法在該介面產生臨界折射。這會導致地表無法接收到來自該層的頭波（Head wave），形成所謂的「隱藏層 (Hidden Layer)」或「折射盲區」，進而使研究者高估下方地層的實際深度。"
-            },
-            {
-                chapter: "3.3 Reflection Seismology",
-                question: "什麼是正常時差 (Normal Moveout, NMO)？",
-                answer: "正常時差 (NMO) 是指同一個水平反射面，在不同震央距的接收站所觀測到的走時差異。透過 NMO 校正，可以將所有的反射走時平移至相當於垂直反射的走時，不僅能將信號疊加增強，更能藉此精準估算出地層的波速。"
-            },
-            {
-                chapter: "3.4 Spherical Earth",
-                question: "在球狀地球模型中，射線參數 (Ray Parameter, p) 的定義與其物理意義為何？",
-                answer: "射線參數定義為 <strong>p = (r × sin i) / v</strong>。根據史奈爾定律的球體推廣，對於一條給定的地震射線，在其整個傳播路徑上，射線參數 p 是一個常數（守恆量），這是追跡地震波在地球內部傳播軌跡的核心基礎。"
-            },
-            {
-                chapter: "3.5 Body wave studies",
-                question: "什麼是「三分支效應 (Triplication)」，它在地震圖上有什麼特徵？",
-                answer: "三分支效應是由於地球內部（特別是上部地函）存在波速隨深度急遽增加的過渡帶（如相變面），導致不同射線參數的波在相似的震央距同時抵達。這使得走時曲線在圖形上呈現倒折的 'Z' 字型，並在地表觀測到多重抵達相 (Multiple Arrivals)。"
-            },
-            {
-                chapter: "3.6 Anisotropic structure",
-                question: "「剪力波分裂 (Shear-wave Splitting)」能告訴我們地球內部的什麼資訊？",
-                answer: "當剪力波穿過非等向性介質時，會分裂成兩個偏振方向垂直、且波速不同的獨立波（快波與慢波）。這種現象可以用來推斷地函礦物（如橄欖石）的晶格優選取向 (LPO)，進而了解地函對流的方向；或在地殼中用來識別裂隙的排列方向。"
-            },
-            {
-                chapter: "3.7 Attenuation",
-                question: "地震學中描述介質「衰減」的參數是什麼？它代表什麼意義？",
-                answer: "描述衰減的參數是「品質因子 (Quality Factor, Q)」。Q 值越高，代表介質的非彈性衰減越小（震波能量保存得越好）；Q 值越低，代表每一週期內散失為熱能的能量比例越高。常見的高溫軟流圈通常具有較低的 Q 值。"
-            },
-            {
-                chapter: "3.8 Mantle & Core",
-                question: "我們如何確切知道地核主要由鐵和鎳組成？",
-                answer: "科學家將地震波測量得到的地核波速與密度分佈，與高溫高壓物理實驗下各類金屬與矽酸鹽的狀態方程式進行比對。結果發現，只有鐵鎳合金在高壓下的密度與彈性波速特性，能完美吻合地核的觀測結果。"
-            },
-            {
-                chapter: "3.10 Problems",
-                question: "在全球走時曲線分析中，如何運用 Benndorf 關係式？",
-                answer: "Benndorf 關係式指出，地表走時曲線的斜率 (dT/dΔ) 就等於該射線的射線參數 p。因此，我們只需測量觀測走時曲線的斜率，就能利用 <strong>p = (r₀ × sin i₀) / v₀</strong> 反推出地震波抵達地表的出射角，這是解開地球反演問題的關鍵步驟。"
-            }
+            { chapter: "3.1 Introduction", question: "P波與S波進入液態的外核時，會發生什麼變化？", answer: "S波無法在液態的外核中傳播，而P波的波速會急遽下降。這些觀測到的波速變化，是我們建立核函邊界 (Core-Mantle Boundary) 兩側物質物理性質與化學成分模型的主要直接證據。" },
+            { chapter: "3.2 Refraction Seismology", question: "在震測折射法中，如果地下存在「低速帶」，會產生什麼問題？", answer: "如果存在低速帶（下層波速低於上層波速），地震波將無法在該介面產生臨界折射。這會導致地表無法接收到來自該層的頭波（Head wave），形成所謂的「隱藏層 (Hidden Layer)」或「折射盲區」，進而使研究者高估下方地層的實際深度。" },
+            { chapter: "3.3 Reflection Seismology", question: "什麼是正常時差 (Normal Moveout, NMO)？", answer: "正常時差 (NMO) 是指同一個水平反射面，在不同震央距的接收站所觀測到的走時差異。透過 NMO 校正，可以將所有的反射走時平移至相當於垂直反射的走時，不僅能將信號疊加增強，更能藉此精準估算出地層的波速。" },
+            { chapter: "3.4 Spherical Earth", question: "在球狀地球模型中，射線參數 (Ray Parameter, p) 的定義與其物理意義為何？", answer: "射線參數定義為 <strong>p = (r × sin i) / v</strong>。根據史奈爾定律的球體推廣，對於一條給定的地震射線，在其整個傳播路徑上，射線參數 p 是一個常數（守恆量），這是追跡地震波在地球內部傳播軌跡的核心基礎。" },
+            { chapter: "3.5 Body wave studies", question: "什麼是「三分支效應 (Triplication)」，它在地震圖上有什麼特徵？", answer: "三分支效應是由於地球內部（特別是上部地函）存在波速隨深度急遽增加的過渡帶（如相變面），導致不同射線參數的波在相似的震央距同時抵達。這使得走時曲線在圖形上呈現倒折的 'Z' 字型，並在地表觀測到多重抵達相 (Multiple Arrivals)。" },
+            { chapter: "3.6 Anisotropic structure", question: "「剪力波分裂 (Shear-wave Splitting)」能告訴我們地球內部的什麼資訊？", answer: "當剪力波穿過非等向性介質時，會分裂成兩個偏振方向垂直、且波速不同的獨立波（快波與慢波）。這種現象可以用來推斷地函礦物（如橄欖石）的晶格優選取向 (LPO)，進而了解地函對流的方向；或在地殼中用來識別裂隙的排列方向。" },
+            { chapter: "3.7 Attenuation", question: "地震學中描述介質「衰減」的參數是什麼？它代表什麼意義？", answer: "描述衰減的參數是「品質因子 (Quality Factor, Q)」。Q 值越高，代表介質的非彈性衰減越小（震波能量保存得越好）；Q 值越低，代表每一週期內散失為熱能的能量比例越高。常見的高溫軟流圈通常具有較低的 Q 值。" },
+            { chapter: "3.8 Mantle & Core", question: "我們如何確切知道地核主要由鐵和鎳組成？", answer: "科學家將地震波測量得到的地核波速與密度分佈，與高溫高壓物理實驗下各類金屬與矽酸鹽的狀態方程式進行比對。結果發現，只有鐵鎳合金在高壓下的密度與彈性波速特性，能完美吻合地核的觀測結果。" },
+            { chapter: "3.10 Problems", question: "在全球走時曲線分析中，如何運用 Benndorf 關係式？", answer: "Benndorf 關係式指出，地表走時曲線的斜率 (dT/dΔ) 就等於該射線的射線參數 p。因此，我們只需測量觀測走時曲線的斜率，就能利用 <strong>p = (r₀ × sin i₀) / v₀</strong> 反推出地震波抵達地表的出射角，這是解開地球反演問題的關鍵步驟。" }
         ];
 
-        const grid = document.getElementById('qaGrid');
+        document.addEventListener('DOMContentLoaded', () => {
+            // Configure marked with highlight.js
+            marked.setOptions({
+                highlight: function(code, lang) {
+                    const language = highlight.getLanguage(lang) ? lang : 'plaintext';
+                    return highlight.highlight(code, { language }).value;
+                },
+                langPrefix: 'hljs language-',
+                breaks: true,
+                gfm: true
+            });
 
-        function renderCards(data) {
-            grid.innerHTML = '';
-            data.forEach((item, index) => {
-                const scene = document.createElement('div');
-                scene.className = 'card-scene';
+            const navLinksContainer = document.getElementById('navLinks');
+            const contentBody = document.getElementById('contentBody');
+            const heroSubtitle = document.getElementById('heroSubtitle');
+            const mobileToggle = document.getElementById('mobileToggle');
+            const sidebar = document.getElementById('sidebar');
+
+            // Handle mobile menu toggle
+            mobileToggle.addEventListener('click', () => {
+                sidebar.classList.toggle('open');
+            });
+
+            // If pageData is not loaded properly
+            if (typeof pageData === 'undefined' || pageData.length === 0) {
+                contentBody.innerHTML = '<h2>錯誤：無法載入內容資料。</h2><p>請確認 data.js 是否已正確生成。</p>';
+                return;
+            }
+
+            // Generate Navigation
+            pageData.forEach((page, index) => {
+                const li = document.createElement('li');
+                li.className = 'nav-item';
+                if (index === 0) li.classList.add('active');
+                if (page.isQA) li.classList.add('qa-tab');
                 
-                const card = document.createElement('div');
-                card.className = 'card';
-                card.onclick = () => card.classList.toggle('is-flipped');
+                const iconSvg = page.isQA 
+                    ? `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>`
+                    : `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>`;
+                
+                li.innerHTML = `${iconSvg} <span>${page.title}</span>`;
+                li.dataset.index = index;
+                
+                li.addEventListener('click', () => {
+                    // Update active state
+                    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+                    li.classList.add('active');
+                    
+                    // Render content
+                    renderContent(index);
+                    
+                    // Close sidebar on mobile
+                    if (window.innerWidth <= 768) {
+                        sidebar.classList.remove('open');
+                    }
+                    
+                    // Scroll to top
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                });
+                
+                navLinksContainer.appendChild(li);
+            });
 
-                card.innerHTML = `
-                    <div class="card-face card-front">
-                        <span class="chapter-badge">${item.chapter}</span>
-                        <div class="question-icon">💡</div>
-                        <h3 class="question-text">${item.question}</h3>
-                        <div class="click-hint">點擊翻牌查看解答</div>
+            // Function to render Q&A Section dynamically
+            function renderQA() {
+                const qaContainer = document.getElementById('qa-section-container');
+                if (!qaContainer) return;
+                
+                qaContainer.innerHTML = `
+                    <div class="qa-controls">
+                        <button class="btn" id="expandAll">展開所有解答</button>
+                        <button class="btn btn-secondary" id="collapseAll">蓋上所有卡片</button>
+                        <button class="btn" id="shuffle">隨機打亂題目</button>
                     </div>
-                    <div class="card-face card-back">
-                        <div class="answer-title">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9 12l2 2 4-4"></path></svg>
-                            解答
-                        </div>
-                        <div class="answer-text">${item.answer}</div>
-                    </div>
+                    <div class="qa-grid" id="qaGrid"></div>
                 `;
                 
-                // Add staggered animation
-                scene.style.opacity = '0';
-                scene.style.transform = 'translateY(20px)';
-                scene.style.animation = `fadeUp 0.6s ease forwards ${index * 0.1}s`;
+                function drawCards(dataArray) {
+                    const grid = document.getElementById('qaGrid');
+                    grid.innerHTML = '';
+                    dataArray.forEach((item, index) => {
+                        const scene = document.createElement('div');
+                        scene.className = 'card-scene';
+                        
+                        const card = document.createElement('div');
+                        card.className = 'card';
+                        card.onclick = () => card.classList.toggle('is-flipped');
+
+                        card.innerHTML = `
+                            <div class="card-face card-front">
+                                <span class="chapter-badge">${item.chapter}</span>
+                                <div class="question-icon">💡</div>
+                                <h3 class="question-text">${item.question}</h3>
+                                <div class="click-hint">點擊翻牌查看解答</div>
+                            </div>
+                            <div class="card-face card-back">
+                                <div class="answer-title">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9 12l2 2 4-4"></path></svg>
+                                    解答
+                                </div>
+                                <div class="answer-text">${item.answer}</div>
+                            </div>
+                        `;
+                        scene.appendChild(card);
+                        grid.appendChild(scene);
+                    });
+                }
                 
-                scene.appendChild(card);
-                grid.appendChild(scene);
-            });
-        }
-
-        // Initialize
-        renderCards(qaData);
-
-        // Event Listeners
-        document.getElementById('expandAll').addEventListener('click', () => {
-            document.querySelectorAll('.card').forEach(card => card.classList.add('is-flipped'));
-        });
-
-        document.getElementById('collapseAll').addEventListener('click', () => {
-            document.querySelectorAll('.card').forEach(card => card.classList.remove('is-flipped'));
-        });
-
-        document.getElementById('shuffle').addEventListener('click', () => {
-            const shuffled = [...qaData].sort(() => Math.random() - 0.5);
-            renderCards(shuffled);
-        });
-
-        // Add keyframe styles dynamically
-        const style = document.createElement('style');
-        style.innerHTML = `
-            @keyframes fadeUp {
-                to { opacity: 1; transform: translateY(0); }
+                drawCards(qaData);
+                
+                document.getElementById('expandAll').addEventListener('click', () => {
+                    document.querySelectorAll('.card').forEach(c => c.classList.add('is-flipped'));
+                });
+                document.getElementById('collapseAll').addEventListener('click', () => {
+                    document.querySelectorAll('.card').forEach(c => c.classList.remove('is-flipped'));
+                });
+                document.getElementById('shuffle').addEventListener('click', () => {
+                    drawCards([...qaData].sort(() => Math.random() - 0.5));
+                });
             }
-        `;
-        document.head.appendChild(style);
 
+            // Function to render markdown content with animation
+            function renderContent(index) {
+                const page = pageData[index];
+                heroSubtitle.textContent = page.title;
+                
+                // Reset animation
+                contentBody.style.animation = 'none';
+                contentBody.offsetHeight; // Trigger reflow
+                contentBody.style.animation = null; 
+                
+                contentBody.innerHTML = marked.parse(page.content);
+                
+                if (page.isQA) {
+                    renderQA();
+                }
+            }
+
+            // Initial render
+            renderContent(0);
+        });
     </script>
 </body>
 </html>
