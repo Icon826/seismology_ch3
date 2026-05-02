@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>地震學與地球內部結構 - Chapter 3</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Highlight.js for code formatting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css">
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+
+    <button class="mobile-toggle" id="mobileToggle" aria-label="Toggle Menu">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+    </button>
+
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h2>Seismology</h2>
+                <p>Chapter 3: Earth Structure</p>
+            </div>
+            <ul class="nav-links" id="navLinks">
+                <!-- Navigation items will be generated here by JS -->
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <section class="hero">
+                <div class="hero-content">
+                    <h1>地震波與地球內部結構</h1>
+                    <p id="heroSubtitle">探索地球深處的奧秘</p>
+                </div>
+            </section>
+
+            <div class="content-wrapper">
+                <div class="markdown-body" id="contentBody">
+                    <!-- Markdown content will be rendered here -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+    <!-- Load data -->
+    <script src="./data.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Configure marked with highlight.js
+            marked.setOptions({
+                highlight: function(code, lang) {
+                    const language = highlight.getLanguage(lang) ? lang : 'plaintext';
+                    return highlight.highlight(code, { language }).value;
+                },
+                langPrefix: 'hljs language-',
+                breaks: true,
+                gfm: true
+            });
+
+            const navLinksContainer = document.getElementById('navLinks');
+            const contentBody = document.getElementById('contentBody');
+            const heroSubtitle = document.getElementById('heroSubtitle');
+            const mobileToggle = document.getElementById('mobileToggle');
+            const sidebar = document.getElementById('sidebar');
+
+            // Handle mobile menu toggle
+            mobileToggle.addEventListener('click', () => {
+                sidebar.classList.toggle('open');
+            });
+
+            // If pageData is not loaded properly
+            if (typeof pageData === 'undefined' || pageData.length === 0) {
+                contentBody.innerHTML = '<h2>錯誤：無法載入內容資料。</h2><p>請確認 data.js 是否已正確生成。</p>';
+                return;
+            }
+
+            // Generate Navigation
+            pageData.forEach((page, index) => {
+                const li = document.createElement('li');
+                li.className = 'nav-item';
+                if (index === 0) li.classList.add('active');
+                
+                // Add icon based on content type
+                const iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>`;
+                
+                // format title to be more readable
+                let displayTitle = page.title;
+                
+                li.innerHTML = `${iconSvg} <span>${displayTitle}</span>`;
+                li.dataset.index = index;
+                
+                li.addEventListener('click', () => {
+                    // Update active state
+                    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+                    li.classList.add('active');
+                    
+                    // Render content
+                    renderContent(index);
+                    
+                    // Close sidebar on mobile
+                    if (window.innerWidth <= 768) {
+                        sidebar.classList.remove('open');
+                    }
+                    
+                    // Scroll to top
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                });
+                
+                navLinksContainer.appendChild(li);
+            });
+
+            // Function to render markdown content with animation
+            function renderContent(index) {
+                const page = pageData[index];
+                heroSubtitle.textContent = page.title;
+                
+                // Reset animation
+                contentBody.style.animation = 'none';
+                contentBody.offsetHeight; // Trigger reflow
+                contentBody.style.animation = null; 
+                
+                // Parse markdown
+                // Before parsing, let's inject record_section.png into one of the pages if we can find a good place
+                // (Optional: if the page mentions "record section" or "走時圖", we could append the image)
+                let mdContent = page.content;
+                if (mdContent.includes('走時') && !mdContent.includes('record_section.png')) {
+                    mdContent += '\n\n### 波形剖面範例\n\n![地震波走時與波形剖面](./record_section.png)\n\n*這是一張地震波走時與波形剖面（Record Section）的範例圖。*';
+                }
+
+                contentBody.innerHTML = marked.parse(mdContent);
+            }
+
+            // Initial render
+            renderContent(0);
+        });
+    </script>
+</body>
+</html>
