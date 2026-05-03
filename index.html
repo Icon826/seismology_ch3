@@ -4,364 +4,334 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>地震學第三章：地球內部結構大解密</title>
-    
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    
     <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://unpkg.com/lucide-react@latest"></script>
-
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
     <style>
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        body { font-family: 'Noto Sans TC', sans-serif; }
         .animate-fade-in { animation: fadeIn 0.5s ease-out forwards; }
-        .font-serif { font-family: Georgia, Cambria, "Times New Roman", Times, serif; }
-        
-        /* 載入中遮罩，防止編譯期間白屏 */
-        #loading-overlay {
-            position: fixed; inset: 0; background: #f8fafc;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            z-index: 9999; transition: opacity 0.5s;
-        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .hidden { display: none; }
     </style>
 </head>
-<body>
-    <div id="loading-overlay">
-        <div class="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-        <p class="text-slate-600 font-medium">震波傳遞中，請稍候...</p>
-    </div>
+<body class="min-h-screen bg-slate-50 text-gray-800 pb-20">
 
-    <div id="root"></div>
+    <header class="bg-gradient-to-br from-blue-900 to-indigo-800 text-white pt-20 pb-16 px-6 text-center shadow-md">
+        <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight mb-4 animate-fade-in">
+            地震學第三章：地球內部結構大解密
+        </h1>
+        <p class="text-xl md:text-2xl text-blue-200 max-w-3xl mx-auto font-medium">
+            別擔心公式太可怕，你的專屬導師帶你用最白話的方式，看透地球的內心戲！
+        </p>
+    </header>
 
-    <script type="text/babel">
-        const { useState, useEffect } = React;
-
-        // --- 安全獲取圖示 (防白屏核心) ---
-        const getIcons = () => {
-            const lucide = window.LucideReact || {};
-            return {
-                Activity: lucide.Activity || (() => <span>📊</span>),
-                BookOpen: lucide.BookOpen || (() => <span>📖</span>),
-                Brain: lucide.Brain || (() => <span>🧠</span>),
-                CheckCircle: lucide.CheckCircle || (() => <span>✅</span>),
-                ChevronRight: lucide.ChevronRight || (() => <span>➡️</span>),
-                HelpCircle: lucide.HelpCircle || (() => <span>❓</span>),
-                AlertCircle: lucide.AlertCircle || (() => <span>⚠️</span>),
-                Info: lucide.Info || (() => <span>ℹ️</span>),
-                Zap: lucide.Zap || (() => <span>⚡</span>)
-            };
-        };
-
-        // --- 圖片資源 ---
-        const IMAGES = {
-            fig3_2_1: "https://github.com/Icon826/seismology_ch3/blob/main/Fig.3.2-1.png?raw=true",
-            fig3_2_2: "https://github.com/Icon826/seismology_ch3/blob/main/Fig.3.2-2.png?raw=true",
-            fig3_2_5: "https://github.com/Icon826/seismology_ch3/blob/main/Fig.3.2-5.png?raw=true",
-            fig3_2_6: "https://github.com/Icon826/seismology_ch3/blob/main/Fig.3.2-6.png?raw=true",
-            fig3_2_12: "https://github.com/Icon826/seismology_ch3/blob/main/Fig.3.2-12.png?raw=true",
-            fig3_2_13: "https://github.com/Icon826/seismology_ch3/blob/main/Fig.3.2-13.png?raw=true",
-            fig3_2_19: "https://github.com/Icon826/seismology_ch3/blob/main/Fig.3.2-19.png?raw=true",
-            fig3_3_10: "https://github.com/Icon826/seismology_ch3/blob/main/Fig.3.3-10.png?raw=true",
-            fig3_3_24: "https://github.com/Icon826/seismology_ch3/blob/main/Fig.3.3-24.png?raw=true",
-            fig3_3_26: "https://github.com/Icon826/seismology_ch3/blob/main/Fig.3.3-26.png?raw=true",
-            fig3_4_2: "https://github.com/Icon826/seismology_ch3/blob/main/Fig.3.4-2.png?raw=true",
-            fig3_4_5: "https://github.com/Icon826/seismology_ch3/blob/main/Fig.3.4-5.png?raw=true",
-            fig3_4_6: "https://github.com/Icon826/seismology_ch3/blob/main/Fig.3.4-6.png?raw=true",
-            fig3_4_7: "https://github.com/Icon826/seismology_ch3/blob/main/Fig.3.4-7.png?raw=true",
-            fig3_5_2: "https://github.com/Icon826/seismology_ch3/blob/main/Fig.3.5-2.png?raw=true",
-            fig3_5_5: "https://github.com/Icon826/seismology_ch3/blob/main/Fig.3.5-5.png?raw=true",
-            fig3_5_12: "https://github.com/Icon826/seismology_ch3/blob/main/Fig.3.5-12.png?raw=true"
-        };
-
-        // --- UI 組件 ---
-        const TeacherBubble = ({ children, title = "導師碎碎念" }) => {
-            const { Brain, BookOpen } = getIcons();
-            return (
-                <div className="flex items-start gap-4 my-6 bg-blue-50 p-6 rounded-2xl shadow-sm border border-blue-100 relative overflow-hidden">
-                    <div className="absolute -right-4 -top-4 text-blue-100 opacity-50"><Brain size={100} /></div>
-                    <div className="flex-shrink-0 bg-blue-500 text-white p-3 rounded-full shadow-md z-10"><BookOpen size={24} /></div>
-                    <div className="z-10">
-                        <h4 className="font-bold text-blue-800 mb-2">{title}</h4>
-                        <div className="text-gray-700 leading-relaxed space-y-2">{children}</div>
+    <main class="max-w-4xl mx-auto px-4 sm:px-6 -mt-8 space-y-12 relative z-10">
+        
+        <section class="bg-white p-6 md:p-10 rounded-2xl shadow-lg border border-gray-100">
+            <h2 class="text-3xl font-bold text-blue-900 border-b-2 border-blue-100 pb-4 mb-6 flex items-center gap-2">
+                <i data-lucide="book-open"></i> 1. 導言：醫生有 X 光，我們有地震波！
+            </h2>
+            
+            <div class="flex items-start gap-4 my-6 bg-blue-50 p-6 rounded-2xl shadow-sm border border-blue-100 relative overflow-hidden">
+                <div class="absolute -right-4 -top-4 text-blue-100 opacity-50">
+                    <i data-lucide="brain" style="width: 100px; height: 100px;"></i>
+                </div>
+                <div class="flex-shrink-0 bg-blue-500 text-white p-3 rounded-full shadow-md z-10">
+                    <i data-lucide="book-open"></i>
+                </div>
+                <div class="z-10">
+                    <h4 class="font-bold text-blue-800 mb-2">導師開場白</h4>
+                    <div class="text-gray-700 leading-relaxed space-y-2">
+                        <p>想像一下，如果你想知道一顆大西瓜熟了沒，你會怎麼做？沒錯，敲一敲它聽聲音！</p>
+                        <p>地球物理學家也是一樣的。我們沒辦法把地球切開來看，所以我們利用地震產生的「震波」，聽聽它們穿過地球內部的「聲音」。</p>
+                        <p>P波（P-wave）像是排隊時後方人的<strong>前後推擠</strong>。S波（S-wave）則是繩子甩動的<strong>上下左右</strong>波動。最酷的是，S波沒辦法穿過液體！所以當 S波在地球深處突然消失，我們就知道：「外地核是液態的！」</p>
                     </div>
                 </div>
-            );
-        };
+            </div>
 
-        const CheckIn = ({ question, answer, onReveal }) => {
-            const [revealed, setRevealed] = useState(false);
-            const { HelpCircle } = getIcons();
-            return (
-                <div className="bg-amber-50 border-l-4 border-amber-400 p-5 my-6 rounded-r-xl shadow-sm">
-                    <div className="flex items-center gap-2 text-amber-800 font-bold mb-3"><HelpCircle size={20} /><span>這部分還可以嗎？你的大腦還在線上嗎？</span></div>
-                    <p className="text-gray-700 mb-4 font-medium">{question}</p>
-                    {!revealed ? (
-                        <button onClick={() => { setRevealed(true); if(onReveal) onReveal(); }} className="bg-amber-100 hover:bg-amber-200 text-amber-800 px-4 py-2 rounded-lg font-medium transition-colors text-sm">點我看解答！</button>
-                    ) : (
-                        <div className="bg-white p-4 rounded-lg text-gray-700 shadow-inner border border-amber-100 animate-fade-in"><p><strong>導師解答：</strong> {answer}</p></div>
-                    )}
+            <div class="bg-amber-50 border-l-4 border-amber-400 p-5 my-6 rounded-r-xl shadow-sm">
+                <div class="flex items-center gap-2 text-amber-800 font-bold mb-3">
+                    <i data-lucide="help-circle"></i>
+                    <span>這部分還可以嗎？你的大腦還在線上嗎？</span>
                 </div>
-            );
-        };
+                <p class="text-gray-700 mb-4 font-medium">為什麼我們說地震波的解析度比重力或磁力探勘還要好？</p>
+                <button onclick="toggleAnswer(this)" class="bg-amber-100 hover:bg-amber-200 text-amber-800 px-4 py-2 rounded-lg font-medium transition-colors text-sm">
+                    點我看解答！
+                </button>
+                <div class="hidden mt-4 bg-white p-4 rounded-lg text-gray-700 shadow-inner border border-amber-100 animate-fade-in">
+                    <p><strong>導師解答：</strong> 因為重力跟磁力只能給我們一個「模糊的猜測」；但地震波就像超音波掃描，可以直接告訴我們介面的精確深度，以及兩側物質屬性的劇烈變化！</p>
+                </div>
+            </div>
+        </section>
 
-        const ImageFigure = ({ src, caption, alt }) => (
-            <figure className="my-8 flex flex-col items-center bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-                <img src={src} alt={alt || caption} className="max-w-full h-auto rounded-lg" loading="lazy" onError={(e) => { e.target.src = 'https://placehold.co/600x400?text=圖片載入失敗'; }} />
-                <figcaption className="mt-3 text-sm text-gray-500 text-center font-medium border-t border-gray-100 pt-2 w-full">{caption}</figcaption>
+        <section class="bg-white p-6 md:p-10 rounded-2xl shadow-lg border border-gray-100">
+            <h2 class="text-3xl font-bold text-blue-900 border-b-2 border-blue-100 pb-4 mb-6">2. 震測折射法：跑得快的人先到！</h2>
+            <p class="text-lg mb-4">要了解地下的分層，我們最常把地球先假裝成一層層平坦的千層蛋糕。這叫做<strong>平坦地層模型 (Flat Layer Method)</strong>。</p>
+
+            <figure class="my-8 flex flex-col items-center bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                <img src="https://github.com/Icon826/seismology_ch3/blob/main/Fig.3.2-1.png?raw=true" class="max-w-full h-auto rounded-lg" onerror="this.src='https://placehold.co/600x400?text=Fig+3.2-1+Loading...'">
+                <figcaption class="mt-3 text-sm text-gray-500 text-center font-medium border-t border-gray-100 pt-2 w-full">圖 3.2-1：平坦地層模型與三種基本射線路徑</figcaption>
             </figure>
-        );
 
-        const Formula = ({ children }) => (
-            <div className="bg-gray-800 text-green-400 p-4 rounded-xl font-mono text-center my-4 overflow-x-auto shadow-inner text-lg">{children}</div>
-        );
-
-        // --- 測驗組件 ---
-        const QuizSection = () => {
-            const { Activity, CheckCircle, ChevronRight, Zap } = getIcons();
-            const [currentQ, setCurrentQ] = useState(0);
-            const [score, setScore] = useState(0);
-            const [showResult, setShowResult] = useState(false);
-            const [selectedOpt, setSelectedOpt] = useState(null);
-            const [showExplanation, setShowExplanation] = useState(false);
-
-            const questions = [
-                { q: "當地震波往下傳遞，遇到一個「波速更快」的地層，且以「臨界角」入射時，會產生什麼波？", opts: ["直達波 (Direct Wave)", "首波 (Head Wave)", "表面波 (Surface Wave)", "超音波 (Ultrasound)"], ans: 1, exp: "答對啦！這就像是在沙灘上跑步的人，突然決定斜切到旁邊的柏油路上跑，然後再不斷發射能量回到沙灘上。這就是聰明的「首波」！" },
-                { q: "在「球狀地球」模型中，射線參數 (Ray Parameter, p) 的公式是什麼？", opts: ["p = sin(i) / v", "p = r × sin(i) / v", "p = v / sin(i)", "p = m × c²"], ans: 1, exp: "沒錯！因為地球是圓的，我們不能只看角度，還要把到地心的距離 (r) 算進去。就像花式溜冰選手旋轉時，手臂收合會影響轉速一樣，這是一個守恆量喔！" },
-                { q: "關於品質因子 (Quality Factor, Q)，下列哪句話是正確的？", opts: ["Q 值越高，代表地震波能量衰減越快。", "敲擊大布丁的 Q 值比敲擊金屬鐘的 Q 值高。", "Q 值越高，代表介質越接近完美的彈性體，能量耗損越少。", "Q 值只跟波的顏色有關。"], ans: 2, exp: "太棒了！Q 值就像是「彈性優良指數」。高 Q 值代表能量幾乎不耗損（像金屬鐘一直響），低 Q 值則代表能量很快被吸走（像敲布丁噗一聲就沒了）。" },
-                { q: "在地函中，波速突然隨深度急遽增加（例如橄欖石相變），會導致走時曲線上出現什麼形狀的特徵？", opts: ["完美的圓形", "字母 'Z' 形狀的三分支效應 (Triplication)", "一條水平直線", "波浪狀"], ans: 1, exp: "完全正確！因為波速突然跳升，導致在某些距離下，地震儀會同時接收到走不同路徑的波，在走時圖上看起來就像一個 'Z' 字型的折疊，我們稱之為「三分支效應」。" }
-            ];
-
-            const handleSelect = (idx) => {
-                if (showExplanation) return;
-                setSelectedOpt(idx); setShowExplanation(true);
-                if (idx === questions[currentQ].ans) setScore(score + 1);
-            };
-
-            const nextQ = () => {
-                setSelectedOpt(null); setShowExplanation(false);
-                if (currentQ < questions.length - 1) setCurrentQ(currentQ + 1);
-                else setShowResult(true);
-            };
-
-            if (showResult) {
-                return (
-                    <div className="bg-white p-8 rounded-2xl shadow-lg text-center border-t-8 border-green-500">
-                        <Activity size={64} className="mx-auto text-green-500 mb-4" />
-                        <h3 className="text-3xl font-bold text-gray-800 mb-2">測驗完成！</h3>
-                        <p className="text-xl text-gray-600 mb-6">你的得分：<span className="font-bold text-blue-600">{score} / {questions.length}</span></p>
-                        {score === questions.length ? ( <p className="text-green-600 font-medium">太神啦！你簡直是行走的地震儀，第三章的精華你都吸收了！🎉</p> ) : score >= 2 ? ( <p className="text-blue-600 font-medium">表現不錯喔！觀念大致都有掌握，再去複習一下錯的題目就完美了！👍</p> ) : ( <p className="text-amber-600 font-medium">看來有些觀念還在「低速帶」裡迷路喔！沒關係，多看幾次導師的解說，你一定會懂的！💪</p> )}
-                        <button onClick={() => {setCurrentQ(0); setScore(0); setShowResult(false);}} className="mt-8 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-full transition-colors">再挑戰一次</button>
+            <div class="flex items-start gap-4 my-6 bg-blue-50 p-6 rounded-2xl shadow-sm border border-blue-100 relative overflow-hidden">
+                <div class="flex-shrink-0 bg-blue-500 text-white p-3 rounded-full shadow-md z-10"><i data-lucide="book-open"></i></div>
+                <div class="z-10">
+                    <h4 class="font-bold text-blue-800 mb-2">聰明的首波 (Head wave)</h4>
+                    <div class="text-gray-700 leading-relaxed space-y-2">
+                        <p>假設你在沙灘上跑。<strong>直達波</strong>是傻傻沿著沙灘跑；<strong>反射波</strong>是碰壁彈回來；<strong>首波</strong>則是斜切到底下的柏油路（高速層）狂奔再輻射能量回來。</p>
+                        <p class="mt-2 text-red-600 font-bold">雖然首波繞了遠路，但因為底層速度快，在過了「交叉距離」後，它反而會成為第一個被記錄到的波！</p>
                     </div>
-                );
-            }
-
-            const q = questions[currentQ];
-            return (
-                <div className="bg-white p-6 md:p-8 rounded-2xl shadow-lg border border-gray-100">
-                    <div className="flex justify-between items-center mb-6">
-                        <h3 className="text-2xl font-bold text-gray-800 flex items-center gap-2"><Zap className="text-yellow-500" /> 成果驗收時間！</h3>
-                        <span className="bg-blue-100 text-blue-800 py-1 px-3 rounded-full font-bold text-sm">題號 {currentQ + 1} / {questions.length}</span>
-                    </div>
-                    <p className="text-lg font-medium text-gray-700 mb-6">{q.q}</p>
-                    <div className="space-y-3">
-                        {q.opts.map((opt, idx) => {
-                            let btnClass = "w-full text-left p-4 rounded-xl border-2 transition-all ";
-                            if (!showExplanation) btnClass += "border-gray-200 hover:border-blue-400 hover:bg-blue-50 text-gray-700";
-                            else if (idx === q.ans) btnClass += "border-green-500 bg-green-50 text-green-800 font-bold";
-                            else if (idx === selectedOpt) btnClass += "border-red-500 bg-red-50 text-red-800";
-                            else btnClass += "border-gray-200 text-gray-400 opacity-50";
-
-                            return (
-                                <button key={idx} disabled={showExplanation} onClick={() => handleSelect(idx)} className={btnClass}>
-                                    <div className="flex items-center justify-between">
-                                        <span>{opt}</span>
-                                        {showExplanation && idx === q.ans && <CheckCircle className="text-green-500" />}
-                                    </div>
-                                </button>
-                            );
-                        })}
-                    </div>
-                    {showExplanation && (
-                        <div className="mt-6 animate-fade-in">
-                            <div className={`p-4 rounded-xl mb-6 ${selectedOpt === q.ans ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                                <p className="font-bold mb-1">{selectedOpt === q.ans ? '🎉 答對囉！' : '😅 哎呀，差一點！'}</p>
-                                <p className="text-sm">{q.exp}</p>
-                            </div>
-                            <button onClick={nextQ} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-colors">
-                                {currentQ === questions.length - 1 ? '看成績' : '下一題'} <ChevronRight size={20} />
-                            </button>
-                        </div>
-                    )}
                 </div>
-            );
-        };
+            </div>
 
-        // --- 主程式 ---
-        function App() {
-            useEffect(() => {
-                const timer = setTimeout(() => {
-                    const overlay = document.getElementById('loading-overlay');
-                    if (overlay) {
-                        overlay.style.opacity = '0';
-                        setTimeout(() => overlay.remove(), 500);
-                    }
-                }, 800);
-                return () => clearTimeout(timer);
-            }, []);
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <figure class="my-4 flex flex-col items-center bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                    <img src="https://github.com/Icon826/seismology_ch3/blob/main/Fig.3.2-2.png?raw=true" class="max-w-full h-auto rounded-lg">
+                    <figcaption class="mt-3 text-sm text-gray-500 text-center font-medium">圖 3.2-2：首波在交叉距離後變成了第一名！</figcaption>
+                </figure>
+                <figure class="my-4 flex flex-col items-center bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                    <img src="https://github.com/Icon826/seismology_ch3/blob/main/Fig.3.2-5.png?raw=true" class="max-w-full h-auto rounded-lg">
+                    <figcaption class="mt-3 text-sm text-gray-500 text-center font-medium">圖 3.2-5：折減走時圖示意。</figcaption>
+                </figure>
+            </div>
 
-            const { Info, Activity } = getIcons();
-
-            return (
-                <div className="min-h-screen bg-slate-50 font-sans text-gray-800 pb-20">
-                    <header className="bg-gradient-to-br from-blue-900 to-indigo-800 text-white pt-20 pb-16 px-6 text-center shadow-md">
-                        <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-4 animate-fade-in">地震學第三章：地球內部結構大解密</h1>
-                        <p className="text-xl md:text-2xl text-blue-200 max-w-3xl mx-auto font-medium">別擔心公式太可怕，你的專屬導師帶你用最白話的方式，看透地球的內心戲！</p>
-                    </header>
-
-                    <main className="max-w-4xl mx-auto px-4 sm:px-6 -mt-8 space-y-12 relative z-10">
-                        <section className="bg-white p-6 md:p-10 rounded-2xl shadow-lg border border-gray-100">
-                            <h2 className="text-3xl font-bold text-blue-900 border-b-2 border-blue-100 pb-4 mb-6">1. 導言：醫生有 X 光，我們有地震波！</h2>
-                            <TeacherBubble title="導師開場白">
-                                <p>想像一下，如果你想知道一顆大西瓜熟了沒，你會怎麼做？沒錯，敲一敲它聽聲音！</p>
-                                <p>地球物理學家也是一樣的。我們沒辦法把地球切開來看（那樣太暴力了），所以我們利用地震產生的「震波（Seismic Waves）」，聽聽它們穿過地球內部的「聲音」。</p>
-                                <p>P波（P-wave）就像是你在排隊時，後面的人突然推你一把，這種力量是<strong>前後傳遞</strong>的。而 S波（S-wave）就像是你拿著繩子甩，能量是<strong>上下左右</strong>波動的。最酷的是，S波沒辦法穿過液體！所以當我們發現 S波在地球深處某個地方突然消失了，我們就知道：「啊哈！外地核是液態的！」</p>
-                            </TeacherBubble>
-                            <CheckIn question="為什麼我們說地震波的解析度比重力或磁力探勘還要好？" answer="因為重力跟磁力只能給我們一個『模糊的猜測』，告訴我們地下可能有一坨重重的東西；但地震波就像超音波掃描，可以直接告訴我們介面的精確深度，以及兩側物質屬性的劇烈變化！" />
-                        </section>
-
-                        <section className="bg-white p-6 md:p-10 rounded-2xl shadow-lg border border-gray-100">
-                            <h2 className="text-3xl font-bold text-blue-900 border-b-2 border-blue-100 pb-4 mb-6">2. 震測折射法：跑得快的人先到！</h2>
-                            <p className="text-lg mb-4">要了解地下的分層，我們最常把地球先假裝成一層層平坦的千層蛋糕。這叫做<strong>平坦地層模型 (Flat Layer Method)</strong>。</p>
-                            <ImageFigure src={IMAGES.fig3_2_1} caption="圖 3.2-1：平坦地層模型與三種基本射線路徑（直達波、反射波、首波）" />
-                            <TeacherBubble title="聰明的首波 (Head wave)">
-                                <p>看圖 3.2-1，假設你在沙灘上（慢速層 <span className="font-serif italic">v₀</span>），你要跑到遠處的終點。你有三種選擇：</p>
-                                <ul className="list-disc pl-6 mt-2 space-y-1">
-                                    <li><strong>直達波：</strong> 傻傻地沿著沙灘一直跑。（公式：時間 = 距離 / <span className="font-serif italic">v₀</span>）</li>
-                                    <li><strong>反射波：</strong> 跑到下層的交界面，碰壁彈回來。</li>
-                                    <li><strong>首波 (Head wave)：</strong> 這是最聰明的！你斜切到底下的柏油路（高速層 <span className="font-serif italic">v₁</span>），在柏油路上狂奔，然後再不斷把能量往上輻射回沙灘。</li>
-                                </ul>
-                                <p className="mt-2 text-red-600 font-bold">雖然首波繞了遠路，但因為底層速度快很多，所以在過了某個「交叉距離 (Crossover Distance)」後，首波反而會超越直達波，成為第一個被地震儀記錄到的波（初達波 First Arrival）！</p>
-                            </TeacherBubble>
-                            <ImageFigure src={IMAGES.fig3_2_2} caption="圖 3.2-2：直達波、反射波與首波的走時曲線。注意首波在交叉距離後變成了第一名！" />
-                            <ImageFigure src={IMAGES.fig3_2_5} caption="圖 3.2-5：真實觀測數據的折減走時圖，用來凸顯特定波速的到達相。" />
-                            
-                            <h3 className="text-2xl font-bold text-gray-800 mt-8 mb-4">進階挑戰：傾斜地層與捉迷藏的隱藏層</h3>
-                            <p className="mb-4">當然，大自然不會總是乖乖水平的。如果地層是傾斜的（Dipping Layer），你從上坡打波和從下坡打波，測出來的「視波速（Apparent Velocity）」會不一樣！</p>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <ImageFigure src={IMAGES.fig3_2_6} caption="圖 3.2-6：傾斜地層模型。從不同方向看，速度不一樣喔！" />
-                                <div className="space-y-4 my-auto">
-                                    <div className="bg-red-50 p-4 rounded-xl border border-red-100">
-                                        <h4 className="font-bold text-red-800">隱藏層 (Hidden Layer) 危機！</h4>
-                                        <p className="text-sm text-red-700 mb-2">有時候地層太薄，或者夾在中間（盲區 Blind Zone，圖 3.2-12），首波可能永遠不會成為「初達波」，這樣我們看走時曲線就會漏算這層！</p>
-                                        <p className="text-sm text-red-900 bg-red-100 p-2 rounded-lg font-medium">🔍 例子：夾在較厚黏土層下的一層「極薄砂岩層」。因為太薄了，波在裡面滑行的距離不足以讓它超越上層直達波，或被深層更快岩體傳來的首波蓋過去，導致我們在初達波紀錄上完全「看」不到它！</p>
-                                    </div>
-                                    <div className="bg-purple-50 p-4 rounded-xl border border-purple-100">
-                                        <h4 className="font-bold text-purple-800">低速帶 (Low Velocity Zone)</h4>
-                                        <p className="text-sm text-purple-700 mb-2">如果越往下波速反而變慢（速度逆轉，圖 3.2-13），波就會往下彎，根本不會產生首波回到地表！這會造成所謂的「陰影區 (Shadow Zone)」。</p>
-                                        <p className="text-sm text-purple-900 bg-purple-100 p-2 rounded-lg font-medium">🔍 例子：地球內部的「軟流圈 (Asthenosphere)」就是最經典的低速帶！因為高溫導致岩石有部分熔融，波速比上方的岩石圈還慢，震波進去後會向下偏折，造成地表某個區間收不到波。</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="flex justify-center gap-4 flex-col md:flex-row">
-                                <ImageFigure src={IMAGES.fig3_2_12} caption="圖 3.2-12：因為地層太薄導致的折射盲區 (Blind Zone)。" />
-                                <ImageFigure src={IMAGES.fig3_2_13} caption="圖 3.2-13：低速帶導致波往下偏折，表面收不到折射波。" />
-                            </div>
-                            <CheckIn question="1909 年，Mohorovičić 是怎麼發現地殼和地函的交界（莫氏不連續面 Moho）的？" answer="他觀察地震圖時，發現有兩組 P波抵達！一組走得慢但路徑短（地殼裡的直達波 Pg），一組走得快但繞遠路（進入地函的首波 Pn）。從它們走時曲線的交叉點，他推算出了地殼的厚度！" />
-                        </section>
-
-                        <section className="bg-white p-6 md:p-10 rounded-2xl shadow-lg border border-gray-100">
-                            <h2 className="text-3xl font-bold text-blue-900 border-b-2 border-blue-100 pb-4 mb-6">3. 震測反射法：聽回音找寶藏</h2>
-                            <TeacherBubble title="找石油的最佳利器">
-                                <p>如果折射法是看波在底下「滑行」的速度，那反射法就是單純地對著地下大喊，然後聽「回音」。石油公司超愛這個方法，因為它的解析度極高！</p>
-                                <p>反射波的走時曲線是一條<strong>雙曲線</strong>。距離震源越遠（偏移距 Offset 越大），波走的時間當然越久。</p>
-                            </TeacherBubble>
-                            <p className="text-lg mb-4">但這裡有個問題：因為不同距離的接收器收到同一個地下點（共中點 CMP）的回音時間不一樣，如果我們直接把它們加起來，波形會糊掉。</p>
-                            <div className="bg-slate-100 p-5 rounded-xl mb-6 border border-slate-200">
-                                <h4 className="font-bold text-slate-800 mb-2">魔法校正：NMO (Normal Moveout)</h4>
-                                <p className="text-slate-700">為了解決這個問題，我們會扣掉因為距離產生的「額外時間（正常時差 NMO）」，把所有波形拉平，好像它們都是從正上方打下來的一樣。然後把它們疊加（Stacking）在一起，雜訊就會抵銷，訊號就會變得超級清晰！</p>
-                            </div>
-                            <ImageFigure src={IMAGES.fig3_3_10} caption="圖 3.3-10：NMO 校正與共中點疊加 (Stacking) 過程示意圖。" />
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <ImageFigure src={IMAGES.fig3_3_24} caption="圖 3.3-24：偏移歸位 (Migration) 將繞射波收斂，還原真實地下結構。" />
-                                <ImageFigure src={IMAGES.fig3_3_26} caption="圖 3.3-26：一張漂亮的真實反射震測剖面圖。" />
-                            </div>
-                            <CheckIn question="為什麼我們要大費周章地做 NMO 校正和疊加 (Stacking)？" answer="因為地下的訊號通常很微弱，背景雜訊很多。藉由 NMO 把同一個反射點的訊號時間對齊後疊加起來，真實的訊號會被放大，雜訊會因為隨機性而被互相抵銷掉，大幅提高『訊號雜訊比 (SNR)』！" />
-                        </section>
-
-                        <section className="bg-white p-6 md:p-10 rounded-2xl shadow-lg border border-gray-100">
-                            <h2 className="text-3xl font-bold text-blue-900 border-b-2 border-blue-100 pb-4 mb-6">4. 球狀地球與體波：地球才不是平的！</h2>
-                            <TeacherBubble title="全球地震學的視角">
-                                <p>當我們研究幾百公里內的地震，假設地球是平的還說得過去。但如果智利發生大地震，波傳到台灣，我們就必須承認地球是圓的了（廢話）。</p>
-                                <p>在球體裡，經典的史奈爾定律 (Snell's Law) 需要一點修改。我們會使用一個在同一條射線上永遠不變的魔法數字，叫做<strong>射線參數 (Ray Parameter, <span className="font-serif italic">p</span>)</strong>。</p>
-                            </TeacherBubble>
-                            <Formula>p = (r × sin(i)) / v = 常數</Formula>
-                            <p className="text-center text-sm text-gray-500 mb-6">(r = 距離地心的半徑, i = 入射角, v = 波速)</p>
-                            <ImageFigure src={IMAGES.fig3_4_2} caption="圖 3.4-2：球狀地球中的射線路徑。注意波是怎麼隨著深度（波速增加）而彎曲回地表的。" />
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 text-sm">
-                                <ImageFigure src={IMAGES.fig3_4_5} caption="圖 3.4-5：球狀地球的走時曲線。" />
-                                <ImageFigure src={IMAGES.fig3_4_6} caption="圖 3.4-6：Herglotz-Wiechert 反演法示意。" />
-                                <ImageFigure src={IMAGES.fig3_4_7} caption="圖 3.4-7：利用 HW 法反演出的速度隨深度變化圖。" />
-                            </div>
-                            <h3 className="text-2xl font-bold text-gray-800 mt-8 mb-4">波的密碼：震相命名法則</h3>
-                            <p className="mb-4">地震波在地球裡鑽來鑽去，有時穿過地核，有時撞到邊界反彈。為了一目了然，地震學家發明了密碼：</p>
-                            <ul className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                                <li className="bg-gray-50 p-3 rounded-lg border border-gray-200"><strong>P / S</strong>：在地函中傳播的 P 波或 S 波。</li>
-                                <li className="bg-blue-50 p-3 rounded-lg border border-blue-200"><strong>K / I</strong>：穿過外核(液態)的 P波叫 K (Kern)；穿過內核(固態)的叫 I。</li>
-                                <li className="bg-green-50 p-3 rounded-lg border border-green-200"><strong>c / m</strong>：撞到核函邊界反彈叫 c；撞到地表反彈不加字(如PP)；莫氏面是 m。</li>
-                                <li className="bg-red-50 p-3 rounded-lg border border-red-200"><strong>PKIKP</strong>：P波出發 ➔ 穿透外核(K) ➔ 穿透內核(I) ➔ 穿出外核(K) ➔ 穿出地函(P)。超級長途旅行！</li>
-                            </ul>
-                            <div className="flex flex-col md:flex-row gap-6">
-                                <div className="w-full md:w-1/2"><ImageFigure src={IMAGES.fig3_5_2} caption="圖 3.5-2：各種複雜的震相 (Phases) 在地球內部的傳播路徑。" /></div>
-                                <div className="w-full md:w-1/2"><ImageFigure src={IMAGES.fig3_5_5} caption="圖 3.5-5：全球標準走時曲線圖 (PREM/IASP91 模型)。" /></div>
-                            </div>
-                            <TeacherBubble title="三分支效應 (Triplication)">
-                                <p>看看圖 3.5-12，在地函 410km 和 660km 深處，因為壓力太大了，礦物（像橄欖石）會發生「相變」，結構被壓得更緊密，導致波速<strong>突然暴增</strong>！</p>
-                                <p>這會讓走時曲線在這裡出現一個像英文字母「Z」的摺疊。在特定的距離內，你會接收到三個幾乎同時到達的波！這就是著名的「三分支效應」。</p>
-                            </TeacherBubble>
-                            <ImageFigure src={IMAGES.fig3_5_12} caption="圖 3.5-12：地函波速急遽躍升造成的三分支效應 (Triplication)，走時曲線呈現 Z 字型折疊。" />
-                        </section>
-
-                        <section className="bg-white p-6 md:p-10 rounded-2xl shadow-lg border border-gray-100">
-                            <h2 className="text-3xl font-bold text-blue-900 border-b-2 border-blue-100 pb-4 mb-6">5. 地球的材質：非等向性與衰減</h2>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                <div>
-                                    <h3 className="text-xl font-bold text-indigo-800 mb-3 flex items-center gap-2"><Info size={20}/> 非等向性 (Anisotropy)</h3>
-                                    <p className="text-gray-700 leading-relaxed mb-4">一般我們假設地球是「等向的」，也就是不管波往哪裡走，速度都一樣。但大自然沒那麼乖！</p>
-                                    <p className="text-gray-700 leading-relaxed">就像木頭順著紋路劈比較好劈一樣，地函裡的礦物（如橄欖石）在板塊運動拉扯下，會朝著同一個方向排列。這導致波順著它們排列方向走的時候比較快，垂直方向就比較慢！這種現象會造成<strong>剪力波分裂 (Shear-Wave Splitting)</strong>。</p>
-                                </div>
-                                <div>
-                                    <h3 className="text-xl font-bold text-orange-800 mb-3 flex items-center gap-2"><Activity size={20}/> 衰減與 Q 值 (Attenuation & Q)</h3>
-                                    <p className="text-gray-700 leading-relaxed mb-4">地球不是完美的彈簧。當波傳遞時，岩石內部的微觀摩擦會把部分動能變成熱能消耗掉，這叫「衰減」。</p>
-                                    <div className="bg-orange-50 p-4 rounded-lg border border-orange-100">
-                                        <p className="font-bold text-orange-900">品質因子 (Quality Factor, Q)</p>
-                                        <p className="text-sm text-orange-800 mt-1">
-                                            用來衡量彈性好壞。<br/>
-                                            <strong>高 Q 值：</strong> 幾乎不耗損能量（像敲金屬鐘，嗡嗡嗡響很久）。<br/>
-                                            <strong>低 Q 值：</strong> 能量消耗很快（像敲大布丁，聲音馬上死掉）。
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                            <CheckIn question="高頻波和低頻波，誰在地球裡衰減得比較快？" answer="高頻波衰減得比較快！這就跟你在遠處聽打雷一樣，你只會聽到低沉的轟隆聲，因為高頻的劈啪聲在空氣中傳播時早就被衰減光了。在地球內部也是一樣的道理！" />
-                        </section>
-
-                        <section id="quiz"><QuizSection /></section>
-                    </main>
-
-                    <footer className="mt-16 text-center text-gray-500 text-sm">
-                        <p>地震學課程 第三章互動教材 © 2026</p>
-                        <p className="mt-1">Generated by Your Friendly AI Tutor</p>
-                    </footer>
+            <h3 class="text-2xl font-bold text-gray-800 mt-8 mb-4">進階挑戰：傾斜地層與捉迷藏的隱藏層</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <figure class="my-4 flex flex-col items-center bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                    <img src="https://github.com/Icon826/seismology_ch3/blob/main/Fig.3.2-6.png?raw=true" class="max-w-full h-auto rounded-lg">
+                    <figcaption class="mt-3 text-sm text-gray-500 text-center font-medium">圖 3.2-6：傾斜地層模型。</figcaption>
+                </figure>
+                <div class="space-y-4">
+                    <div class="bg-red-50 p-4 rounded-xl border border-red-100">
+                        <h4 class="font-bold text-red-800">隱藏層 (Hidden Layer) 危機！</h4>
+                        <p class="text-sm text-red-700">有時候地層太薄，首波可能永遠不會成為「初達波」，導致我們漏算這層！</p>
+                    </div>
+                    <div class="bg-purple-50 p-4 rounded-xl border border-purple-100">
+                        <h4 class="font-bold text-purple-800">低速帶 (Low Velocity Zone)</h4>
+                        <p class="text-sm text-purple-700">如果越往下波速變慢，波會往下彎，不會產生首波。這會造成「陰影區」。</p>
+                    </div>
                 </div>
-            );
+            </div>
+
+            <div class="flex justify-center gap-4">
+                 <img src="https://github.com/Icon826/seismology_ch3/blob/main/Fig.3.2-12.png?raw=true" class="w-1/2 h-auto rounded-lg border">
+                 <img src="https://github.com/Icon826/seismology_ch3/blob/main/Fig.3.2-13.png?raw=true" class="w-1/2 h-auto rounded-lg border">
+            </div>
+
+            <div class="bg-amber-50 border-l-4 border-amber-400 p-5 my-6 rounded-r-xl shadow-sm">
+                <p class="text-gray-700 mb-4 font-medium">1909 年，Mohorovičić 是怎麼發現莫氏不連續面 (Moho) 的？</p>
+                <button onclick="toggleAnswer(this)" class="bg-amber-100 hover:bg-amber-200 text-amber-800 px-4 py-2 rounded-lg font-medium transition-colors text-sm">點我看解答！</button>
+                <div class="hidden mt-4 bg-white p-4 rounded-lg text-gray-700 shadow-inner border border-amber-100">
+                    他發現有兩組 P波抵達：地殼直達波 (Pg) 與繞進地函的首波 (Pn)，進而推算出地殼厚度！
+                </div>
+            </div>
+        </section>
+
+        <section class="bg-white p-6 md:p-10 rounded-2xl shadow-lg border border-gray-100">
+            <h2 class="text-3xl font-bold text-blue-900 border-b-2 border-blue-100 pb-4 mb-6">3. 震測反射法：聽回音找寶藏</h2>
+            <div class="flex items-start gap-4 my-6 bg-blue-50 p-6 rounded-2xl shadow-sm border border-blue-100">
+                <div class="z-10">
+                    <h4 class="font-bold text-blue-800 mb-2">找石油的最佳利器</h4>
+                    <p class="text-gray-700">反射法是單純對著地下大喊聽「回音」。反射波走時曲線是<strong>雙曲線</strong>。</p>
+                </div>
+            </div>
+
+            <div class="bg-slate-100 p-5 rounded-xl mb-6 border border-slate-200">
+                <h4 class="font-bold text-slate-800 mb-2">魔法校正：NMO (Normal Moveout)</h4>
+                <p class="text-slate-700">我們會扣掉距離產生的「額外時間」，把所有波形拉平並疊加 (Stacking)，大幅提高訊噪比 (SNR)！</p>
+            </div>
+
+            <figure class="my-8 flex flex-col items-center bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                <img src="https://github.com/Icon826/seismology_ch3/blob/main/Fig.3.3-10.png?raw=true" class="max-w-full h-auto rounded-lg">
+                <figcaption class="mt-3 text-sm text-gray-500 text-center">圖 3.3-10：NMO 校正與共中點疊加過程。</figcaption>
+            </figure>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <img src="https://github.com/Icon826/seismology_ch3/blob/main/Fig.3.3-24.png?raw=true" class="rounded-lg border">
+                <img src="https://github.com/Icon826/seismology_ch3/blob/main/Fig.3.3-26.png?raw=true" class="rounded-lg border">
+            </div>
+        </section>
+
+        <section class="bg-white p-6 md:p-10 rounded-2xl shadow-lg border border-gray-100">
+            <h2 class="text-3xl font-bold text-blue-900 border-b-2 border-blue-100 pb-4 mb-6">4. 球狀地球與體波：地球才不是平的！</h2>
+            <div class="bg-gray-800 text-green-400 p-4 rounded-xl font-mono text-center my-4 overflow-x-auto shadow-inner text-lg">
+                p = (r × sin(i)) / v = 常數
+            </div>
+            <p class="text-center text-sm text-gray-500 mb-6">(r = 半徑, i = 入射角, v = 波速)</p>
+
+            <figure class="my-8 flex flex-col items-center">
+                <img src="https://github.com/Icon826/seismology_ch3/blob/main/Fig.3.4-2.png?raw=true" class="max-w-full h-auto rounded-lg border">
+                <figcaption class="mt-3 text-sm text-gray-500">圖 3.4-2：球狀地球中的射線路徑。</figcaption>
+            </figure>
+
+            <h3 class="text-2xl font-bold text-gray-800 mt-8 mb-4">波的密碼：震相命名法則</h3>
+            <ul class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <li class="bg-gray-50 p-3 rounded-lg border border-gray-200"><strong>P / S</strong>：地函中的波。</li>
+                <li class="bg-blue-50 p-3 rounded-lg border border-blue-200"><strong>K / I</strong>：外核(K)；內核(I)。</li>
+                <li class="bg-green-50 p-3 rounded-lg border border-green-200"><strong>c</strong>：撞到核函邊界反彈。</li>
+                <li class="bg-red-50 p-3 rounded-lg border border-red-200"><strong>PKIKP</strong>：穿透內外核的超級長途旅行！</li>
+            </ul>
+
+            <img src="https://github.com/Icon826/seismology_ch3/blob/main/Fig.3.5-12.png?raw=true" class="w-full rounded-lg border my-4">
+            <p class="text-sm text-gray-500 text-center">圖 3.5-12：地函波速急遽躍升造成的三分支效應 (Triplication)。</p>
+        </section>
+
+        <section class="bg-white p-6 md:p-10 rounded-2xl shadow-lg border border-gray-100">
+            <h2 class="text-3xl font-bold text-blue-900 border-b-2 border-blue-100 pb-4 mb-6">5. 地球的材質：非等向性與衰減</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                    <h3 class="text-xl font-bold text-indigo-800 mb-3 flex items-center gap-2"><i data-lucide="info"></i> 非等向性</h3>
+                    <p class="text-gray-700">地函礦物排列會導致波在不同方向速度不同，造成<strong>剪力波分裂</strong>。</p>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold text-orange-800 mb-3 flex items-center gap-2"><i data-lucide="activity"></i> 衰減與 Q 值</h3>
+                    <div class="bg-orange-50 p-4 rounded-lg border border-orange-100 text-sm">
+                        <strong>高 Q 值：</strong> 能量不耗損（金屬鐘）。<br>
+                        <strong>低 Q 值：</strong> 能量消耗快（大布丁）。
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="quiz" class="bg-white p-6 md:p-8 rounded-2xl shadow-lg border border-gray-100">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                    <i data-lucide="zap" class="text-yellow-500"></i> 成果驗收時間！
+                </h3>
+                <span id="quiz-progress" class="bg-blue-100 text-blue-800 py-1 px-3 rounded-full font-bold text-sm">題號 1 / 4</span>
+            </div>
+            
+            <div id="quiz-container">
+                <p id="quiz-question" class="text-lg font-medium text-gray-700 mb-6"></p>
+                <div id="quiz-options" class="space-y-3"></div>
+                <div id="quiz-explanation" class="mt-6 hidden">
+                    <div id="exp-box" class="p-4 rounded-xl mb-6"></div>
+                    <button onclick="nextQuestion()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-colors">
+                        下一題 <i data-lucide="chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div id="quiz-result" class="hidden text-center py-8">
+                <i data-lucide="activity" class="mx-auto text-green-500 mb-4" style="width: 64px; height: 64px;"></i>
+                <h3 class="text-3xl font-bold text-gray-800 mb-2">測驗完成！</h3>
+                <p id="final-score" class="text-xl text-gray-600 mb-6"></p>
+                <button onclick="restartQuiz()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-full">再挑戰一次</button>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="mt-16 text-center text-gray-500 text-sm">
+        <p>地震學課程 第三章互動教材 © 2026</p>
+    </footer>
+
+    <script>
+        // 初始化 Lucide 圖示
+        lucide.createIcons();
+
+        // 解答折疊功能
+        function toggleAnswer(btn) {
+            const ans = btn.nextElementSibling;
+            ans.classList.toggle('hidden');
+            btn.innerText = ans.classList.contains('hidden') ? '點我看解答！' : '隱藏解答';
         }
 
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
+        // 測驗系統邏輯
+        const questions = [
+            {
+                q: "當地震波往下傳遞，遇到一個「波速更快」的地層，且以「臨界角」入射時，會產生什麼波？",
+                opts: ["直達波 (Direct Wave)", "首波 (Head Wave)", "表面波 (Surface Wave)", "超音波 (Ultrasound)"],
+                ans: 1,
+                exp: "答對啦！這就像跑柏油路比較快的人。這就是聰明的「首波」！"
+            },
+            {
+                q: "在「球狀地球」模型中，射線參數 (Ray Parameter, p) 的公式是什麼？",
+                opts: ["p = sin(i) / v", "p = r × sin(i) / v", "p = v / sin(i)", "p = m × c²"],
+                ans: 1,
+                exp: "沒錯！因為地球是圓的，要把到地心的距離 (r) 算進去。"
+            },
+            {
+                q: "關於品質因子 (Quality Factor, Q)，下列哪句話是正確的？",
+                opts: ["Q 值越高，代表地震波能量衰減越快。", "敲擊大布丁的 Q 值比敲擊金屬鐘的 Q 值高。", "Q 值越高，代表介質越接近完美的彈性體，能量耗損越少。", "Q 值只跟波的顏色有關。"],
+                ans: 2,
+                exp: "太棒了！Q 值就像是「彈性優良指數」。高 Q 代表能量幾乎不耗損。"
+            },
+            {
+                q: "在地函中，波速突然隨深度急遽增加，會導致走時曲線上出現什麼形狀的特徵？",
+                opts: ["完美的圓形", "字母 'Z' 形狀的三分支效應", "一條水平直線", "波浪狀"],
+                ans: 1,
+                exp: "完全正確！這種像 'Z' 字型的折疊稱為「三分支效應」。"
+            }
+        ];
+
+        let currentQ = 0;
+        let score = 0;
+        let answered = false;
+
+        function loadQuestion() {
+            answered = false;
+            const q = questions[currentQ];
+            document.getElementById('quiz-progress').innerText = `題號 ${currentQ + 1} / ${questions.length}`;
+            document.getElementById('quiz-question').innerText = q.q;
+            
+            const optionsDiv = document.getElementById('quiz-options');
+            optionsDiv.innerHTML = '';
+            q.opts.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = "w-full text-left p-4 rounded-xl border-2 border-gray-200 hover:border-blue-400 hover:bg-blue-50 transition-all";
+                btn.innerHTML = `<span>${opt}</span>`;
+                btn.onclick = () => handleSelect(idx);
+                optionsDiv.appendChild(btn);
+            });
+            document.getElementById('quiz-explanation').classList.add('hidden');
+        }
+
+        function handleSelect(idx) {
+            if (answered) return;
+            answered = true;
+            const q = questions[currentQ];
+            const btns = document.getElementById('quiz-options').children;
+            
+            if (idx === q.ans) {
+                score++;
+                btns[idx].className = "w-full text-left p-4 rounded-xl border-2 border-green-500 bg-green-50 text-green-800 font-bold";
+                document.getElementById('exp-box').className = "p-4 rounded-xl mb-6 bg-green-100 text-green-800";
+                document.getElementById('exp-box').innerHTML = "<strong>🎉 答對囉！</strong><br>" + q.exp;
+            } else {
+                btns[idx].className = "w-full text-left p-4 rounded-xl border-2 border-red-500 bg-red-50 text-red-800";
+                btns[q.ans].classList.add('border-green-500', 'bg-green-50');
+                document.getElementById('exp-box').className = "p-4 rounded-xl mb-6 bg-red-100 text-red-800";
+                document.getElementById('exp-box').innerHTML = "<strong>😅 哎呀，差一點！</strong><br>" + q.exp;
+            }
+            document.getElementById('quiz-explanation').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function nextQuestion() {
+            if (currentQ < questions.length - 1) {
+                currentQ++;
+                loadQuestion();
+            } else {
+                showResult();
+            }
+        }
+
+        function showResult() {
+            document.getElementById('quiz-container').classList.add('hidden');
+            document.getElementById('quiz-result').classList.remove('hidden');
+            document.getElementById('final-score').innerText = `你的得分：${score} / ${questions.length}`;
+        }
+
+        function restartQuiz() {
+            currentQ = 0;
+            score = 0;
+            document.getElementById('quiz-container').classList.remove('hidden');
+            document.getElementById('quiz-result').classList.add('hidden');
+            loadQuestion();
+        }
+
+        loadQuestion();
     </script>
 </body>
 </html>
